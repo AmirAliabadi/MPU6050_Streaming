@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Lucky Connect</title>
+    <script type="text/javascript" src="smoothie.js"></script>
+  </head>
+  <body>
+
+    <h1>Lucky Scooters Connect</h1>
+	<img src="lucky_logo_2.png"></img></br>
+
+    <canvas id="mycanvas" width="700" height="200"></canvas></br>
+    <canvas id="mycanvas_g" width="700" height="200"></canvas>
+
+    <script type="text/javascript">
+
+      // Random data
+      var line1 = new TimeSeries();
+      var line2 = new TimeSeries();
+	  var line3 = new TimeSeries();
+      var line4 = new TimeSeries();      
+	  var line5 = new TimeSeries();
+      var line6 = new TimeSeries();
+	  
+	  
+      //setInterval(function() {
+        //line1.append(new Date().getTime(), Math.random());
+        //line2.append(new Date().getTime(), Math.random());
+        //line3.append(new Date().getTime(), Math.random());
+        //line4.append(new Date().getTime(), Math.random());
+        //line5.append(new Date().getTime(), Math.random());
+		//line6.append(new Date().getTime(), Math.random());
+		//}, 1000);
+
+      var smoothie = new SmoothieChart(); //{ grid: { strokeStyle: 'rgb(125, 0, 0)', fillStyle: 'rgb(60, 0, 0)', lineWidth: 1, millisPerLine: 250, verticalSections: 6 } });
+      var smoothie_g = new SmoothieChart(); //{ grid: { strokeStyle: 'rgb(125, 0, 0)', fillStyle: 'rgb(60, 0, 0)', lineWidth: 1, millisPerLine: 250, verticalSections: 6 } });
+      
+	  smoothie.addTimeSeries(line1, { strokeStyle: 'rgb(0, 255, 0)', fillStyle: 'rgba(0, 255, 0, 0.4)', lineWidth: 3 });
+      smoothie.addTimeSeries(line2, { strokeStyle: 'rgb(255, 0, 255)', fillStyle: 'rgba(255, 0, 255, 0.3)', lineWidth: 3 });
+	  smoothie.addTimeSeries(line3, { strokeStyle: 'rgb(255, 255, 0)', fillStyle: 'rgba(0, 255, 0, 0.4)', lineWidth: 3 });
+      smoothie_g.addTimeSeries(line4, { strokeStyle: 'rgb(255, 128, 128)', fillStyle: 'rgba(255, 0, 255, 0.3)', lineWidth: 3 });
+	  smoothie_g.addTimeSeries(line5, { strokeStyle: 'rgb(128, 255, 0)', fillStyle: 'rgba(0, 255, 0, 0.4)', lineWidth: 3 });
+      smoothie_g.addTimeSeries(line6, { strokeStyle: 'rgb(128, 0, 255)', fillStyle: 'rgba(255, 0, 255, 0.3)', lineWidth: 3 });
+
+      smoothie.streamTo(document.getElementById("mycanvas"), 10);
+	  smoothie_g.streamTo(document.getElementById("mycanvas_g"), 10);
+	  
+	  ///////////////////////////////////////////////////////////
+	  ///////////////////////////////////////////////////////////
+	  ///////////////////////////////////////////////////////////
+	  document.addEventListener( 'DOMContentLoaded', function () {
+		// Run this once after the DOM is loaded
+		if (!!window.EventSource) {
+			// Good example on using SSE
+			// http://www.html5rocks.com/en/tutorials/eventsource/basics/
+			
+			var source = new EventSource('data');
+			
+			source.addEventListener('message', function(e) {
+				
+				var jdata = JSON.parse(e.data);
+				handleData(jdata);				
+				
+			}, false);
+		}
+		else {
+			console.log('sse not supported');
+		}
+	}, false );
+
+
+	function handleData(jdata) {
+		line1.append(new Date().getTime(), jdata.ax );
+		line2.append(new Date().getTime(), jdata.ay );
+		line3.append(new Date().getTime(), jdata.az );
+		
+		line4.append(new Date().getTime(), jdata.gx );
+		line5.append(new Date().getTime(), jdata.gy );
+		line6.append(new Date().getTime(), jdata.gz );
+	}	
+	///////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////
+    </script>
+  
+  </body>
+</html>
