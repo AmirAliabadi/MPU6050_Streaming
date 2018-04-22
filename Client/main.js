@@ -1,9 +1,9 @@
-var http = require('http'); // npm install http
+var http = require('http'); 	// npm install http
 var url = require('url'); 
-var fs = require('fs'); // npm install fs
+var fs = require('fs'); 		// npm install fs
 var path = require('path');
 var net = require('net');
-var dgram = require('dgram'); // npm install dgram
+var dgram = require('dgram'); 	// npm install dgram
 
 var ip = require('ip'); // npm install ip -s
 
@@ -96,7 +96,7 @@ dataServer.on('listening', function () {
 });
 
 dataServer.on('message', function (message, remote) {
-//	console.log(''+message);
+	//console.log(''+message);
 	sendDataToClients(message);
 });
 
@@ -106,29 +106,39 @@ dataServer.bind(UDP_PORT); //, HOST);
 function sendDataToClients(data) {
 	var failures = [];
 	var json = '';
+
+	data = '' + data;
+	
+	json += '{"t":' + data.split(" ")[0] + ',';
+	json += '"acc":[';
+	json +=		data.split(" ")[1] + ',';
+	json +=		data.split(" ")[2] + ',';
+	json +=		data.split(" ")[3] + '],';
+	json += '"gyro":[';	
+	json +=		data.split(" ")[4] + ',';
+	json +=		data.split(" ")[5] + ',';
+	json +=		data.split(" ")[6] + '],',
+	json += '"ang":[';
+	json +=		data.split(" ")[7] + ',';
+	json +=		data.split(" ")[8] + ',';	
+	json +=		data.split(" ")[9] + '],';
+	json += '"avg":[';
+	json +=		data.split(" ")[10] + ',';
+	json +=		data.split(" ")[11] + ',';	
+	json +=		data.split(" ")[12] + ']';
+	json += '}';		
+	
+
+	console.log(json);
 	
 	clients.forEach(function (client) {
-
-		data = '' + data;
-		// console.log(data);
-	
-		json += '{"t":'+data.split(" ")[0] + ',';
-		json += '"ax":'+data.split(" ")[1] + ',';
-		json += '"ay":'+data.split(" ")[2] + ',';
-		json += '"az":'+data.split(" ")[3] + ',';
-		json += '"gx":'+data.split(" ")[4] + ',';
-		json += '"gy":'+data.split(" ")[5] + ',';
-		json += '"gz":'+data.split(" ")[6] + '}';
-
-		//console.log(json);
-		
 		if (!client.write('data: ' + json + '\n\n')) {
 			failures.push(client);
 		}
 	});
 	
 	failures.forEach(function (client) {
-		console.log("ending SSE");
+		console.log("ending SSE : " + client);
 		removeClient(client);
 		client.end();
 	});

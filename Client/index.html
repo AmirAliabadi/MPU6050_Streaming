@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html>
   <head>
+
+<style>
+input.ag_value { width:5em; }
+div.dataset { clear:left; }
+div.chart_canvas { float:left; }
+</style>  
+  
     <title>Lucky Connect</title>
     <script type="text/javascript" src="smoothie.js"></script>
   </head>
@@ -9,40 +16,81 @@
     <h1>Lucky Scooters Connect</h1>
 	<img src="lucky_logo_2.png"></img></br>
 
-    <canvas id="mycanvas" width="700" height="200"></canvas></br>
-    <canvas id="mycanvas_g" width="700" height="200"></canvas>
+	<div><p id="error"></p></div>
+	
+	<div class="dataset" name="acc_data" >
+		<div class="chart_canvas">
+			<canvas id="mycanvas_a" width="700" height="200"></canvas>
+		</div>	
+		<div>
+			<input type="checkbox" id="acc-check-x" value="" />ax
+			<input type="checkbox" id="acc-check-y" value="" />ay
+			<input type="checkbox" id="acc-check-z" value="" />az				
+		</div>
+		<div>
+			<input class="ag_value" type="text" id="acc_x" value="" />
+			<input class="ag_value" type="text" id="acc_y" value="" />
+			<input class="ag_value" type="text" id="acc_z" value="" />			
+		</div>		
+	</div>
+	
+	<div class="dataset" name="gyro_data" >
+		<div class="chart_canvas">
+			<canvas id="mycanvas_g" width="700" height="200"></canvas>
+		</div>	
+		<div>
+			<input type="checkbox" id="gyro-check-x" value="" />gx
+			<input type="checkbox" id="gyro-check-y" value="" />gy
+			<input type="checkbox" id="gyro-check-z" value="" />gz			
+		</div>
+		<div>
+			<input class="ag_value" type="text" id="gyro_x" value="" />
+			<input class="ag_value" type="text" id="gyro_y" value="" />
+			<input class="ag_value" type="text" id="gyro_z" value="" />				
+		</div>			
+	</div>
 
+	<div class="dataset" name="render_3d_object" >
+		<canvas id="thecanvas" width="400" height="200">
+			Your browser does not support the HTML5 canvas element.
+		</canvas>	
+	</div>
+	
     <script type="text/javascript">
+		var ts_last = 0;
 
-      // Random data
-      var line1 = new TimeSeries();
-      var line2 = new TimeSeries();
-	  var line3 = new TimeSeries();
-      var line4 = new TimeSeries();      
-	  var line5 = new TimeSeries();
-      var line6 = new TimeSeries();
+		var array_mapping = ["acc","gyro","ang","avg"];
+		var data_ids = ["x","y","z"];
 	  
+		// Random data
+		var ts_data = [
+			[new TimeSeries(),new TimeSeries(),new TimeSeries()],
+			[new TimeSeries(),new TimeSeries(),new TimeSeries()]
+		];
 	  
       //setInterval(function() {
-        //line1.append(new Date().getTime(), Math.random());
-        //line2.append(new Date().getTime(), Math.random());
-        //line3.append(new Date().getTime(), Math.random());
-        //line4.append(new Date().getTime(), Math.random());
-        //line5.append(new Date().getTime(), Math.random());
-		//line6.append(new Date().getTime(), Math.random());
+        //ax.append(new Date().getTime(), Math.random());
+        //ay.append(new Date().getTime(), Math.random());
+        //az.append(new Date().getTime(), Math.random());
+        //gx.append(new Date().getTime(), Math.random());
+        //gy.append(new Date().getTime(), Math.random());
+		//gz.append(new Date().getTime(), Math.random());
 		//}, 1000);
 
-      var smoothie = new SmoothieChart(); //{ grid: { strokeStyle: 'rgb(125, 0, 0)', fillStyle: 'rgb(60, 0, 0)', lineWidth: 1, millisPerLine: 250, verticalSections: 6 } });
-      var smoothie_g = new SmoothieChart(); //{ grid: { strokeStyle: 'rgb(125, 0, 0)', fillStyle: 'rgb(60, 0, 0)', lineWidth: 1, millisPerLine: 250, verticalSections: 6 } });
+      var smoothie_a = new SmoothieChart({ grid: { strokeStyle: 'rgb(125, 0, 0)', fillStyle: 'rgb(60, 0, 0)', lineWidth: 1, millisPerLine: 250, verticalSections: 6 } });
       
-	  smoothie.addTimeSeries(line1, { strokeStyle: 'rgb(0, 255, 0)', fillStyle: 'rgba(0, 255, 0, 0.4)', lineWidth: 3 });
-      smoothie.addTimeSeries(line2, { strokeStyle: 'rgb(255, 0, 255)', fillStyle: 'rgba(255, 0, 255, 0.3)', lineWidth: 3 });
-	  smoothie.addTimeSeries(line3, { strokeStyle: 'rgb(255, 255, 0)', fillStyle: 'rgba(0, 255, 0, 0.4)', lineWidth: 3 });
-      smoothie_g.addTimeSeries(line4, { strokeStyle: 'rgb(255, 128, 128)', fillStyle: 'rgba(255, 0, 255, 0.3)', lineWidth: 3 });
-	  smoothie_g.addTimeSeries(line5, { strokeStyle: 'rgb(128, 255, 0)', fillStyle: 'rgba(0, 255, 0, 0.4)', lineWidth: 3 });
-      smoothie_g.addTimeSeries(line6, { strokeStyle: 'rgb(128, 0, 255)', fillStyle: 'rgba(255, 0, 255, 0.3)', lineWidth: 3 });
+	  smoothie_a.addTimeSeries(ts_data[0][0], { strokeStyle: 'rgb(0, 255, 0)', fillStyle: 'rgba(0, 255, 0, 0.2)', lineWidth: 1 });
+      smoothie_a.addTimeSeries(ts_data[0][1], { strokeStyle: 'rgb(255, 0, 255)', fillStyle: 'rgba(255, 0, 255, 0.3)', lineWidth: 1 });
+	  smoothie_a.addTimeSeries(ts_data[0][2], { strokeStyle: 'rgb(255, 255, 0)', fillStyle: 'rgba(0, 255, 0, 0.2)', lineWidth: 1 });
 
-      smoothie.streamTo(document.getElementById("mycanvas"), 10);
+      smoothie_a.streamTo(document.getElementById("mycanvas_a"), 10);
+
+      var smoothie_g = new SmoothieChart({ grid: { strokeStyle: 'rgb(125, 0, 0)', fillStyle: 'rgb(60, 0, 0)', lineWidth: 1, millisPerLine: 250, verticalSections: 6 } });
+	  
+	  smoothie_g.addTimeSeries(ts_data[1][0], { strokeStyle: 'rgb(255, 128, 128)', fillStyle: 'rgba(255, 0, 255, 0.3)', lineWidth: 1 });
+	  smoothie_g.addTimeSeries(ts_data[1][1], { strokeStyle: 'rgb(128, 255, 0)', fillStyle: 'rgba(0, 255, 0, 0.2)', lineWidth: 1 });
+      smoothie_g.addTimeSeries(ts_data[1][2], { strokeStyle: 'rgb(128, 0, 255)', fillStyle: 'rgba(255, 0, 255, 0.3)', lineWidth: 1 });
+ 	  
 	  smoothie_g.streamTo(document.getElementById("mycanvas_g"), 10);
 	  
 	  ///////////////////////////////////////////////////////////
@@ -57,31 +105,172 @@
 			var source = new EventSource('data');
 			
 			source.addEventListener('message', function(e) {
-				
 				var jdata = JSON.parse(e.data);
-				handleData(jdata);				
-				
+				handleData(jdata);							
 			}, false);
+			
+			document.getElementById('error').innerHTML = "SSE supported";	
 		}
 		else {
 			console.log('sse not supported');
+			document.getElementById('error').innerHTML = "SSE not supported";
 		}
 	}, false );
 
 
-	function handleData(jdata) {
-		line1.append(new Date().getTime(), jdata.ax );
-		line2.append(new Date().getTime(), jdata.ay );
-		line3.append(new Date().getTime(), jdata.az );
-		
-		line4.append(new Date().getTime(), jdata.gx );
-		line5.append(new Date().getTime(), jdata.gy );
-		line6.append(new Date().getTime(), jdata.gz );
+	function handleData(jdata) {		
+		if( jdata.t > ts_last ) {
+			ts_last = jdata.t;
+			
+			draw_Angle(jdata.ang[1]*-1.0, 0, jdata.ang[0]*-1.0) ; //jdata.ang_data[2] );
+			
+			var dt = new Date().getTime();
+
+			for( var i=0; i<2; i++ ) {			
+				for( var j=0; j<3; j++ ) {
+					// acc_x/y/y, gyro_x/y/z
+					document.getElementById( array_mapping[i]+'_'+data_ids[j] ).value = jdata[array_mapping[i]][j] ;
+					
+					// acc-check-x/y/z
+					if( document.getElementById( array_mapping[i]+'-check-'+data_ids[j]).checked ) {
+						ts_data[i][j].append(dt,jdata[array_mapping[i]][j]);
+					}
+				}				
+			}
+		} else {
+		}
 	}	
 	///////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////
     </script>
   
+	<script type="text/javascript">
+        window.onload = startDemo;	
+	
+        function Point3D(x,y,z) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+ 
+            this.rotateX = function(angle) {
+                var rad, cosa, sina, y, z
+                rad = angle * Math.PI / 180
+                cosa = Math.cos(rad)
+                sina = Math.sin(rad)
+                y = this.y * cosa - this.z * sina
+                z = this.y * sina + this.z * cosa
+                return new Point3D(this.x, y, z)
+            }
+ 
+            this.rotateY = function(angle) {
+                var rad, cosa, sina, x, z
+                rad = angle * Math.PI / 180
+                cosa = Math.cos(rad)
+                sina = Math.sin(rad)
+                z = this.z * cosa - this.x * sina
+                x = this.z * sina + this.x * cosa
+                return new Point3D(x,this.y, z)
+            }
+ 
+            this.rotateZ = function(angle) {
+                var rad, cosa, sina, x, y
+                rad = angle * Math.PI / 180
+                cosa = Math.cos(rad)
+                sina = Math.sin(rad)
+                x = this.x * cosa - this.y * sina
+                y = this.x * sina + this.y * cosa
+                return new Point3D(x, y, this.z)
+            }
+ 
+            this.project = function(viewWidth, viewHeight, fov, viewDistance) {
+                var factor, x, y
+                factor = fov / (viewDistance + this.z)
+                x = this.x * factor + viewWidth / 2
+                y = this.y * factor + viewHeight / 2
+                return new Point3D(x, y, this.z)
+            }
+        }
+ 
+        var vertices = [
+            new Point3D(-1,1,-1),
+            new Point3D(1,1,-1),
+            new Point3D(1,-1,-1),
+            new Point3D(-1,-1,-1),
+            new Point3D(-1,1,1),
+            new Point3D(1,1,1),
+            new Point3D(1,-1,1),
+            new Point3D(-1,-1,1)
+        ];
+ 
+        // Define the vertices that compose each of the 6 faces. These numbers are
+        // indices to the vertex list defined above.
+        var faces = [[0,1,2,3],[1,5,6,2],[5,4,7,6],[4,0,3,7],[0,4,5,1],[3,2,6,7]]
+  
+        var angle = 0;
+ 
+        function startDemo() {
+            canvas = document.getElementById("thecanvas");
+            if( canvas && canvas.getContext ) {
+                ctx = canvas.getContext("2d");
+               //setInterval(loop,33);
+            }
+        }
+ 
+		function draw_Angle(x,y,z) {
+			var t = new Array();
+
+			ctx.fillStyle = "rgb(0,0,0)";
+			ctx.fillRect(0,0,400,200);
+
+			for( var i = 0; i < vertices.length; i++ ) {
+				var v = vertices[i];
+				var r = v.rotateX(x).rotateY(y).rotateZ(z);
+				var p = r.project(400,200,128,3.5);
+				t.push(p)
+			}
+
+			ctx.strokeStyle = "rgb(255,55,255)"
+
+			for( var i = 0; i < faces.length; i++ ) {
+				var f = faces[i]
+				ctx.beginPath()
+				ctx.moveTo(t[f[0]].x,t[f[0]].y)
+				ctx.lineTo(t[f[1]].x,t[f[1]].y)
+				ctx.lineTo(t[f[2]].x,t[f[2]].y)
+				ctx.lineTo(t[f[3]].x,t[f[3]].y)
+				ctx.closePath()
+				ctx.stroke()
+			}
+		}
+		
+        function loop() {
+            var t = new Array();
+ 
+            ctx.fillStyle = "rgb(0,0,0)";
+            ctx.fillRect(0,0,400,200);
+ 
+            for( var i = 0; i < vertices.length; i++ ) {
+                var v = vertices[i];
+                var r = v.rotateX(angle).rotateY(angle).rotateZ(angle);
+                var p = r.project(400,200,128,3.5);
+                t.push(p)
+            }
+ 
+            ctx.strokeStyle = "rgb(255,55,255)"
+ 
+            for( var i = 0; i < faces.length; i++ ) {
+                var f = faces[i]
+                ctx.beginPath()
+                ctx.moveTo(t[f[0]].x,t[f[0]].y)
+                ctx.lineTo(t[f[1]].x,t[f[1]].y)
+                ctx.lineTo(t[f[2]].x,t[f[2]].y)
+                ctx.lineTo(t[f[3]].x,t[f[3]].y)
+                ctx.closePath()
+                ctx.stroke()
+            }
+            angle += 2
+        }
+	</script>
   </body>
 </html>
