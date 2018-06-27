@@ -17,6 +17,7 @@ div.chart_canvas { float:left; }
 	<img src="lucky_logo_2.png"></img></br>
 
 	<div><p id="error"></p></div>
+	<div><p id="capture_mode">off</p></div>	
 	
 	<div class="dataset" name="acc_data" >
 		<div class="chart_canvas">
@@ -57,6 +58,28 @@ div.chart_canvas { float:left; }
 	</div>
 	
     <script type="text/javascript">
+		guesture_array = [];
+		function record_guesture( foo ) {
+			//console.log( foo );
+			guesture_array.push( foo );
+		}	
+	
+		document.onkeyup = function(e) {
+		  if(e.keyCode == 90) {
+			// z pressed
+			if( document.getElementById('capture_mode').innerHTML == "Off" ) {
+				document.getElementById('capture_mode').innerHTML = "ON" ;
+			} else {
+				document.getElementById('capture_mode').innerHTML = "Off" ;
+				var string_array = "";
+				for( var i in guesture_array ) {
+					string_array += (guesture_array[i] + ",");
+				}
+					alert( string_array );				
+			}
+		  }
+		}	
+
 		var ts_last = 0;
 
 		var array_mapping = ["acc","gyro","ang","avg"];
@@ -117,19 +140,22 @@ div.chart_canvas { float:left; }
 		}
 	}, false );
 
-
 	function handleData(jdata) {		
 		if( jdata.t > ts_last ) {
 			ts_last = jdata.t;
 			
-			draw_Angle(jdata.ang[1]*-1.0, 0, jdata.ang[0]*-1.0) ; //jdata.ang_data[2] );
+			draw_Angle(jdata.ang[1]*-1.0, 0, jdata.ang[0]*-1.0) ; 
 			
 			var dt = new Date().getTime();
 
+			if( document.getElementById('capture_mode').innerHTML == "ON" ) {
+				record_guesture(jdata[array_mapping[1]][0]);
+			}
+			
 			for( var i=0; i<2; i++ ) {			
-				for( var j=0; j<3; j++ ) {
+				for( var j=0; j<3; j++ ) {				
 					// acc_x/y/y, gyro_x/y/z
-					document.getElementById( array_mapping[i]+'_'+data_ids[j] ).value = jdata[array_mapping[i]][j] ;
+					document.getElementById( array_mapping[i]+'_'+data_ids[j] ).value = jdata[array_mapping[i]][j];
 					
 					// acc-check-x/y/z
 					if( document.getElementById( array_mapping[i]+'-check-'+data_ids[j]).checked ) {
@@ -144,7 +170,7 @@ div.chart_canvas { float:left; }
 	///////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////
     </script>
-  
+	
 	<script type="text/javascript">
         window.onload = startDemo;	
 	
@@ -213,10 +239,9 @@ div.chart_canvas { float:left; }
             canvas = document.getElementById("thecanvas");
             if( canvas && canvas.getContext ) {
                 ctx = canvas.getContext("2d");
-               //setInterval(loop,33);
             }
         }
- 
+		 
 		function draw_Angle(x,y,z) {
 			var t = new Array();
 

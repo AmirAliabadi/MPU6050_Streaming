@@ -7,6 +7,9 @@ var dgram = require('dgram'); 	// npm install dgram
 
 var ip = require('ip'); // npm install ip -s
 
+var ifft = require('fft-js').ifft
+var fft = require('fft-js').fft;
+
 var baseDirectory = path.join(__dirname, "");
 var httpPort = 8080;
 
@@ -102,6 +105,35 @@ dataServer.on('message', function (message, remote) {
 
 dataServer.bind(UDP_PORT); //, HOST);
 
+var arr = [
+	[0.0,0.0,0.0],
+	[0.0,0.0,0.0],
+	[0.0,0.0,0.0],
+	[0.0,0.0,0.0],
+	[0.0,0.0,0.0],
+	[0.0,0.0,0.0],
+	[0.0,0.0,0.0],
+	[0.0,0.0,0.0],
+	[0.0,0.0,0.0],
+	[0.0,0.0,0.0],
+	[0.0,0.0,0.0],
+	[0.0,0.0,0.0],
+	[0.0,0.0,0.0],
+	[0.0,0.0,0.0],
+	[0.0,0.0,0.0]	
+	];
+	
+var arr = [
+	0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
+	0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
+	0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
+	0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
+	0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
+	0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
+	0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
+	0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+	];
+
 // Send data to all SSE web browser clients. data must be a string.
 function sendDataToClients(data) {
 	var failures = [];
@@ -122,14 +154,27 @@ function sendDataToClients(data) {
 	json +=		data.split(" ")[7] + ',';
 	json +=		data.split(" ")[8] + ',';	
 	json +=		data.split(" ")[9] + '],';
-	json += '"avg":[';
+	json += '"avg_acc":[';
 	json +=		data.split(" ")[10] + ',';
 	json +=		data.split(" ")[11] + ',';	
-	json +=		data.split(" ")[12] + ']';
+	json +=		data.split(" ")[12] + '],';
+	json += '"avg_gyro":[';
+	json +=		data.split(" ")[13] + ',';
+	json +=		data.split(" ")[14] + ',';	
+	json +=		data.split(" ")[15] + ']';
 	json += '}';		
 	
+	var jdata = JSON.parse(json);
+	
+	//arr.shift();
+	//arr.push( [jdata.gyro[0],jdata.gyro[1],jdata.gyro[2]] );	
+	//arr.push( jdata.gyro[0] );	
 
+	//var phasors = fft(arr);
+	//console.log(phasors);	
+	
 	console.log(json);
+	//console.log(arr);
 	
 	clients.forEach(function (client) {
 		if (!client.write('data: ' + json + '\n\n')) {
