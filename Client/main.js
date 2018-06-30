@@ -10,11 +10,35 @@ var ip = require('ip'); // npm install ip -s
 var ifft = require('fft-js').ifft
 var fft = require('fft-js').fft;
 
+var dtw_dtw = require('dtw');
+var dtw_xxx = new dtw_dtw();
+
 var baseDirectory = path.join(__dirname, "");
 var httpPort = 8080;
 
 var UDP_PORT = 2311;
-var HOST = ip.address(); 
+var HOST = ip.address();
+
+var min_score = 99999999.00;
+
+/////////////////////////////////////////////
+// SERIAL PORT METHOD
+var SerialPort = require('serialport');
+const parsers = SerialPort.parsers;
+
+const parser = new parsers.Readline({
+  delimiter: '\r\n'
+});
+
+var port = new SerialPort('COM8', {
+  baudRate: 115200
+});
+
+port.pipe(parser);
+port.on('open', () => console.log('Port open'));
+parser.on('data', (d) => sendDataToClients(d));
+//parser.on('data', console.log); // sendDataToClients
+/////////////////////////////////////////////
 
 // This array holds the clients (actually http server response objects) to send data to over SSE
 var clients = [];
@@ -100,11 +124,11 @@ dataServer.on('listening', function () {
 
 dataServer.on('message', function (message, remote) {
 	//console.log(''+message);
-	sendDataToClients(message);
+	//sendDataToClients(message);
 });
 
 dataServer.bind(UDP_PORT); //, HOST);
-
+/*
 var arr = [
 	[0.0,0.0,0.0],
 	[0.0,0.0,0.0],
@@ -122,24 +146,15 @@ var arr = [
 	[0.0,0.0,0.0],
 	[0.0,0.0,0.0]	
 	];
+*/
+var arr = [];
 	
-var arr = [
-	0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
-	0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
-	0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
-	0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
-	0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
-	0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
-	0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
-	0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
-	];
-
 // Send data to all SSE web browser clients. data must be a string.
 function sendDataToClients(data) {
 	var failures = [];
 	var json = '';
 
-	data = '' + data;
+	//data = '' + data;
 	
 	json += '{"t":' + data.split(" ")[0] + ',';
 	json += '"acc":[';
@@ -153,28 +168,40 @@ function sendDataToClients(data) {
 	json += '"ang":[';
 	json +=		data.split(" ")[7] + ',';
 	json +=		data.split(" ")[8] + ',';	
-	json +=		data.split(" ")[9] + '],';
-	json += '"avg_acc":[';
-	json +=		data.split(" ")[10] + ',';
-	json +=		data.split(" ")[11] + ',';	
-	json +=		data.split(" ")[12] + '],';
-	json += '"avg_gyro":[';
-	json +=		data.split(" ")[13] + ',';
-	json +=		data.split(" ")[14] + ',';	
-	json +=		data.split(" ")[15] + ']';
+	json +=		data.split(" ")[9] + ']';
+//	json += '"avg_acc":[';
+//	json +=		data.split(" ")[10] + ',';
+//	json +=		data.split(" ")[11] + ',';	
+//	json +=		data.split(" ")[12] + '],';
+//	json += '"avg_gyro":[';
+//	json +=		data.split(" ")[13] + ',';
+//	json +=		data.split(" ")[14] + ',';	
+//	json +=		data.split(" ")[15] + ']';
 	json += '}';		
 	
+	//console.log( json );
 	var jdata = JSON.parse(json);
 	
-	//arr.shift();
+	var right_right = [-0.4,-0.4,-0.6,-0.4,-0.6,-0.6,-0.5,-0.7,-0.9,-1,-1.4,-2.3,-4.2,-6.1,-5.8,-6.3,-3,-2.8,-2.8,-2.3,8.4,38.2,83.5,125.6,138.8,145,161.6,207.8,250.1,250.1,250.1,250.1,250.1,250.1,250.1,250.1,148,115.5,125.9,143,133.6,81.7,12.8,-52.3,-103.5,-154.6,-200.7,-245.6,-250.1,-250.1,-250.1,-250.1,-250.1,-250.1,-250.1,-250.1,-250.1,-229.9,-191.2,-192,-203.6,-205,-182.1,-145.6,-114.6,-85.1,-57.4,-35.7,4.2,100.7,250.1,250.1,250.1,250.1,250.1,250.1,250.1,250.1,250.1,250.1,250.1,225,178.7,128.6,62.7,-5.3,-56.3,-109.6,-167.9,-241.6,-250.1,-250.1,-250.1,-250.1,-250.1,-250.1,-250.1,-250.1,-250.1,-186.2,-131.1,-97.7,-78.8,-61.7,-41.7,-16.7,0.3,6.1,4.5,3.2,2.9]
+		
+	if( arr.length >= right_right.length ) {		
+		arr.shift();
+	}
 	//arr.push( [jdata.gyro[0],jdata.gyro[1],jdata.gyro[2]] );	
-	//arr.push( jdata.gyro[0] );	
+	arr.push( jdata.gyro[0] );	
+	//console.log( arr.length );
+	var foo = dtw_xxx.compute(arr,right_right) ;
+	if( foo < min_score ) {
+		min_score = foo;
+	}
+	console.log( min_score );
+	//console.log( dtw_xxx.path() );
+	//console.log(right_right[0] + ' : ' + arr[0] + ' : ' + jdata.gyro[0] + ' : ' + dtw_xxx.compute(right_right,arr) );
 
 	//var phasors = fft(arr);
 	//console.log(phasors);	
 	
-	console.log(json);
-	//console.log(arr);
+	//console.log(json);
 	
 	clients.forEach(function (client) {
 		if (!client.write('data: ' + json + '\n\n')) {

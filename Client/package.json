@@ -12,6 +12,7 @@
     "@tensorflow/tfjs": "^0.10.3",
     "dtw": "0.0.3",
     "dynamic-time-warping": "^1.0.0",
+    "serialport": "^6.2.1",
     "tfjs": "^0.6.0"
   }
 }
