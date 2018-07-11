@@ -27,7 +27,6 @@ float y_angle;
 float pitch_angle;
 float roll_angle;
 
-
 double x_ang = 0.0;
 double y_ang = 0.0;
 double z_ang = 0.0;
@@ -74,7 +73,7 @@ void Read_RawValue(uint8_t deviceAddress, uint8_t regAddress){
   Wire.beginTransmission(deviceAddress);
   Wire.write(regAddress);
   Wire.endTransmission();
-  Wire.requestFrom(deviceAddress, (uint8_t)14);
+  Wire.requestFrom(deviceAddress, (uint8_t)14, true);
   AccelX = (((int16_t)Wire.read()<<8) | Wire.read());
   AccelY = (((int16_t)Wire.read()<<8) | Wire.read());
   AccelZ = (((int16_t)Wire.read()<<8) | Wire.read());

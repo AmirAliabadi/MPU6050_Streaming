@@ -57,9 +57,17 @@ div.chart_canvas { float:left; }
 		</canvas>	
 	</div>
 
-	<div><p id="capture_data"></p></div>		
+	<div><input type="text" id="capture_data"></div>
+	
+  <canvas id="c" width="800" height="600"></canvas>
+  <script src="graph.js"></script>	
 	
     <script type="text/javascript">
+	
+		var guesture_start = 0;
+		var guesture_start_point = -99;
+		var guesture_end_point = -99;
+	
 		guesture_array = [];
 		function record_guesture( foo ) {
 			//console.log( foo );
@@ -79,8 +87,10 @@ div.chart_canvas { float:left; }
 					string_array += (guesture_array[i] + ",");
 				}
 				
-				document.getElementById('capture_data').innerHTML = string_array ;
-								
+				document.getElementById('capture_data').value = string_array ;
+				
+				lineGraph( guesture_array );
+
 			}
 		  }
 		}	
@@ -96,15 +106,6 @@ div.chart_canvas { float:left; }
 			[new TimeSeries(),new TimeSeries(),new TimeSeries()]
 		];
 	  
-      //setInterval(function() {
-        //ax.append(new Date().getTime(), Math.random());
-        //ay.append(new Date().getTime(), Math.random());
-        //az.append(new Date().getTime(), Math.random());
-        //gx.append(new Date().getTime(), Math.random());
-        //gy.append(new Date().getTime(), Math.random());
-		//gz.append(new Date().getTime(), Math.random());
-		//}, 1000);
-
       var smoothie_a = new SmoothieChart({ grid: { strokeStyle: 'rgb(125, 0, 0)', fillStyle: 'rgb(60, 0, 0)', lineWidth: 1, millisPerLine: 250, verticalSections: 6 } });
       
 	  smoothie_a.addTimeSeries(ts_data[0][0], { strokeStyle: 'rgb(0, 255, 0)', fillStyle: 'rgba(0, 255, 0, 0.2)', lineWidth: 1 });
@@ -152,22 +153,53 @@ div.chart_canvas { float:left; }
 			draw_Angle(jdata.ang[1]*-1.0, 0, jdata.ang[0]*-1.0) ; 
 			
 			var dt = new Date().getTime();
+			
+			//console.log( jdata.gyro[2] );
 
-			if( document.getElementById('capture_mode').innerHTML == "ON" ) {
-				record_guesture(jdata[array_mapping[1]][0]);
+			if( (Math.abs(jdata.gyro[0]) > 30.0) && (Math.abs(jdata.gyro[1]) > 30.0) ) { //&& (jdata.gyro[2] > 30.0) ) { 
+				if( guesture_start < 4 ) {
+					guesture_start ++ ;
+				}
+				if( guesture_start >=4 ) {
+					// guesture has started
+					guesture_start = 50;
+				}
+			} else {
+				if( guesture_start < 4 ) {
+					// ignore noise
+					guesture_start = 0;
+				} else {
+					if( guesture_start > 0 ) {
+						guesture_start --;
+					}
+				}
+				if( guesture_start == 0 ) {
+					// guesture has ended
+				}
 			}
 			
+			//console.log( guesture_start );
+			
+			if( guesture_start >= 4 ) {
+				if( document.getElementById('capture_mode').innerHTML == "ON" ) {
+					record_guesture(jdata[array_mapping[0]][0]);
+				}
+			}
+				
 			for( var i=0; i<2; i++ ) {			
 				for( var j=0; j<3; j++ ) {				
 					// acc_x/y/y, gyro_x/y/z
 					document.getElementById( array_mapping[i]+'_'+data_ids[j] ).value = jdata[array_mapping[i]][j];
 					
-					// acc-check-x/y/z
-					if( document.getElementById( array_mapping[i]+'-check-'+data_ids[j]).checked ) {
-						ts_data[i][j].append(dt,jdata[array_mapping[i]][j]);
+					if( guesture_start >= 4 ) {
+						// acc-check-x/y/z
+						if( document.getElementById( array_mapping[i]+'-check-'+data_ids[j]).checked ) {
+							ts_data[i][j].append(dt,jdata[array_mapping[i]][j]);
+						}
 					}
 				}				
 			}
+
 		} else {
 		}
 	}	
